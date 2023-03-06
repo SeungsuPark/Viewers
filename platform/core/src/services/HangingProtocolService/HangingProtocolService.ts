@@ -16,7 +16,7 @@ const EVENTS = {
     'event::hanging_protocol_applied_for_viewport',
 };
 
-type Protocol = HangingProtocol.Protocol;
+type Protocol = HangingProtocol.Protocol | HangingProtocol.ProtocolGenerator;
 
 class HangingProtocolService {
   studies: StudyMetadata[];
@@ -180,7 +180,21 @@ class HangingProtocolService {
   public getProtocolById(id: string): HangingProtocol.Protocol {
     const protocol = this.protocols.get(id);
 
-    return protocol;
+    if (protocol instanceof Function) {
+      try {
+        const { protocol: generatedProtocol } = this._getProtocolFromGenerator(
+          protocol
+        );
+
+        return generatedProtocol;
+      } catch (error) {
+        console.warn(
+          `Error while executing protocol generator for protocol ${id}: ${error}`
+        );
+      }
+    } else {
+      return this._validateProtocol(protocol);
+    }
   }
 
   /**
@@ -434,6 +448,23 @@ class HangingProtocolService {
     return protocol;
   }
 
+  private _getProtocolFromGenerator(
+    protocolGenerator: HangingProtocol.ProtocolGenerator
+  ): {
+    protocol: HangingProtocol.Protocol;
+  } {
+    const { protocol } = protocolGenerator({
+      servicesManager: this._servicesManager,
+      commandsManager: this._commandsManager,
+    });
+
+    const validatedProtocol = this._validateProtocol(protocol);
+
+    return {
+      protocol: validatedProtocol,
+    };
+  }
+
   getViewportsRequireUpdate(viewportIndex, displaySetInstanceUID) {
     const newDisplaySetInstanceUID = displaySetInstanceUID;
     const protocol = this.protocol;
@@ -464,6 +495,12 @@ class HangingProtocolService {
     // If there is no displaySet, then we can assume that the viewport
     // is empty and we can just add the new displaySet to it
     if (protocolViewport.displaySets.length === 0) {
+      return defaultReturn;
+    }
+
+    // If the viewport options says to allow any instance, then we can assume
+    // it just updates this viewport
+    if (protocolViewport.viewportOptions.allowUnmatchedView) {
       return defaultReturn;
     }
 
@@ -1098,10 +1135,9 @@ class HangingProtocolService {
   ) {
     const { seriesMatchingRules } = displaySetSelector;
 
-    if (seriesMatchingRules.length) {
-      // only match the required rules
-      const requiredRules = seriesMatchingRules.filter(rule => rule.required);
-
+    // only match the required rules
+    const requiredRules = seriesMatchingRules.filter(rule => rule.required);
+    if (requiredRules.length) {
       const matched = this.protocolEngine.findMatch(displaySet, requiredRules);
 
       if (!matched || matched.score === 0) {

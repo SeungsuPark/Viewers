@@ -10,15 +10,11 @@ import {
   EVENTS,
   metaData,
   volumeLoader,
-  imageLoader,
   imageLoadPoolManager,
   Settings,
 } from '@cornerstonejs/core';
 import { Enums, utilities, ReferenceLinesTool } from '@cornerstonejs/tools';
-import {
-  cornerstoneStreamingImageVolumeLoader,
-  sharedArrayBufferImageLoader,
-} from '@cornerstonejs/streaming-image-volume-loader';
+import { cornerstoneStreamingImageVolumeLoader } from '@cornerstonejs/streaming-image-volume-loader';
 
 import initWADOImageLoader from './initWADOImageLoader';
 import initCornerstoneTools from './initCornerstoneTools';
@@ -27,6 +23,7 @@ import { connectToolsToMeasurementService } from './initMeasurementService';
 import callInputDialog from './utils/callInputDialog';
 import initCineService from './initCineService';
 import interleaveCenterLoader from './utils/interleaveCenterLoader';
+import nthLoader from './utils/nthLoader';
 import interleaveTopToBottom from './utils/interleaveTopToBottom';
 
 const cs3DToolsEvents = Enums.Events;
@@ -121,11 +118,7 @@ export default async function init({
     'interleaveTopToBottom',
     interleaveTopToBottom
   );
-
-  imageLoader.registerImageLoader(
-    'streaming-wadors',
-    sharedArrayBufferImageLoader
-  );
+  HangingProtocolService.registerImageLoadStrategy('nth', nthLoader);
 
   metaData.addProvider(metadataProvider.get.bind(metadataProvider), 9999);
 
