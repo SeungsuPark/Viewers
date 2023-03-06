@@ -12,6 +12,20 @@ import refreshViewports from '../../utils/refreshViewports';
 
 import axios from 'axios';
 
+import { datasetToBlob, datasetToBuffer, datasetToDict } from './datasetToBlob';
+//import DICOMWeb
+/*
+import dcmjs from 'dcmjs';
+import {api} from 'dicomweb-client';
+
+import DICOMWeb from '../DICOMWeb';
+import parseDicomStructuredReport from './parseDicomStructuredReport';
+import parseMeasurementsData from './parseMeasurementsData';
+import getAllDisplaySets from './utils/getAllDisplaySets';
+import errorHandler from '../errorHandler';
+import getXHRRetryRequestHook from '../utils/xhrRetryRequestHook';
+*/
+
 import {
   BrushColorSelector,
   BrushRadius,
@@ -730,14 +744,16 @@ const SegmentationPanel = ({
           <div className="measurementTableFooter">
             <button
               onClick={() => {
-                let sendData = [];
+                /*let sendData = [];
                 state.segmentList.forEach(e => {
                   sendData.push(e.props.labelmap3D);
                 });
                 let data = JSON.stringify(sendData);
 
                 //TODO : 저쟁할때 viewports[0].SeriesInstanceUID 이거랑 넘겨주는 데이터 확인은 필요해보임
-                saveData(viewports[0].SeriesInstanceUID, data);
+                saveData(viewports[0].SeriesInstanceUID, data);*/
+                segDataget();
+
               }}
               className="saveBtn"
               data-cy="save-measurements-btn"
@@ -863,5 +879,64 @@ const noop = () => {};
 SegmentsSection.defaultProps = {
   onVisibilityChange: noop,
 };
+
+
+
+async function segDataget(){
+  //const b = studyMetadataManager.get('1.3.6.1.4.1.14519.5.2.1.2857.3159.240240728642615854563329818837');
+  const b = studyMetadataManager.get('1.2.410.200022.500.201507091202154.11554044342');
+  //1.2.410.200022.500.201507091202154.11554044342
+  const a = b.displaySets[2].metadata;
+  /*a._meta.TransferSyntaxUID = {
+    Value: ["1.2.840.1008.1.2.5"],
+    vr: "UI"
+  };
+  a._meta.SourceApplicationEntityTitle = {
+    Value : [" "],
+    vr: "AE"
+  }
+  a._meta.MediaStorageSOPInstanceUID = {
+    Value : ["1.3.6.1.4.1.25403.52237031786.3872.20100510032220.11"],
+    vr : "UI"
+  }
+  a._meta.MediaStorageSOPClassUID = {
+    Value:["1.2.840.10008.5.1.4.1.1.2"],
+    vr: "UI"
+  }
+  a._meta.ImplementationClassUID = {
+    Value : ["1.3.6.1.4.1.25403.1.1.1"],
+    vr : "UI"
+  }
+  a._meta.ImplementationVersionName = {
+    Value : ["Dicom 0.1"],
+    vr : "SH"
+  }
+  a._meta.FileMetaInformationVersion ={
+    Value : {},
+    vr : "OB"
+  }
+
+*/
+  //a.PixelData = cornerstoneTools.getModule('segmentation').state.series["wadors:http://101.101.211.211:8080/dcm4chee-arc/aets/DCM4CHEE/rs/studies/1.3.6.1.4.1.14519.5.2.1.2857.3159.240240728642615854563329818837/series/1.3.6.1.4.1.14519.5.2.1.2857.3159.245857762722048266072618999314/instances/1.3.6.1.4.1.14519.5.2.1.2857.3159.155965710328592094667042623782/frames/1"].labelmaps3D[0].buffer;
+  a.PixelData = cornerstoneTools.getModule('segmentation').state.series[ "wadors:http://101.101.211.211:8080/dcm4chee-arc/aets/DCM4CHEE/rs/studies/1.2.410.200022.500.201507091202154.11554044342/series/1.3.12.2.1107.5.2.19.45555.2015070912535492591888517.0.0.0/instances/1.3.12.2.1107.5.2.19.45555.2015070912535485727888509/frames/1"].labelmaps3D[0].buffer;
+  const part10Buffer = datasetToBlob(a);
+  console.log(part10Buffer);
+  
+  const config = {
+    url: "http://101.101.211.211:8080/dcm4chee-arc/aets/DCM4CHEE/rs",
+    headers: DICOMWeb.getAuthorizationHeader(),
+    errorInterceptor: errorHandler.getHTTPErrorHandler(),
+    requestHooks: [getXHRRetryRequestHook()],
+  };
+
+  const dicomWeb = new api.DICOMwebClient(config);
+  const options = {
+    datasets: [part10Buffer],
+  };
+
+  await dicomWeb.storeInstances(options);
+
+}
+
 
 export default SegmentationPanel;
