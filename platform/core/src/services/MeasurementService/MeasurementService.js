@@ -247,6 +247,7 @@ class MeasurementService {
         annotation,
         isUpdate
       );
+    };
 
     source.remove = (measurementUID, eventDetails) => {
       return this.remove(measurementUID, source, eventDetails);
