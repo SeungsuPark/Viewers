@@ -147,7 +147,7 @@ const SegmentItem = ({
           {false && <div className="segment-info">{'...'}</div>}
           {true && (
             <div className="segment-actions">
-              <button
+              <button    //segmentatnion 라벨 수정
                 className="btnAction"
                 onClick={() =>
                   showLabellingDialog(
@@ -160,7 +160,7 @@ const SegmentItem = ({
                 </span>
                 Relabel
               </button>
-              <button
+              <button   //segmentaion 그림 삭제
                 className="btnAction"
                 onClick={() =>
                   deleteSegmentationLabel(
