@@ -99,15 +99,6 @@ const definitions = [
     commandOptions: { toolName: 'Angle' },
   },
   {
-    id: 'Rotate',
-    label: 'Rotate',
-    icon: '3d-rotate',
-    //
-    type: TOOLBAR_BUTTON_TYPES.SET_TOOL_ACTIVE,
-    commandName: 'setToolActive',
-    commandOptions: { toolName: 'Rotate' },
-  },
-  {
     id: 'Reset',
     label: 'Reset',
     icon: 'reset',
@@ -225,8 +216,8 @@ const definitions = [
         commandOptions: { toolName: 'Bidirectional' },
       },
       {
-        id: 'Download',
-        label: 'Download',
+        id: 'Capture',
+        label: 'Capture',
         icon: 'create-screen-capture',
         //
         type: TOOLBAR_BUTTON_TYPES.BUILT_IN,
